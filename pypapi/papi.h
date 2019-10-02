@@ -72,6 +72,9 @@ int PAPI_epc(int event, float *rtime, float *ptime, long long *ref, long long *c
 // PAPI LOW (definitions from papi.h)
 // (commented definitions are not (yet?) binded)
 
+typedef void (*PAPI_overflow_handler_t) (int EventSet, void *address,
+                              long long overflow_vector, void *context);
+
 int PAPI_accum(int EventSet, long long * values); /**< accumulate and reset hardware events from an event set */
 int PAPI_add_event(int EventSet, int Event); /**< add single PAPI preset or native hardware event to an event set */
 // int PAPI_add_named_event(int EventSet, char *EventName); /**< add an event by name to a PAPI event set */
@@ -111,7 +114,7 @@ int PAPI_list_events(int EventSet, int *Events, int *number); /**< list the even
 // int PAPI_multiplex_init(void); /**< initialize multiplex support in the PAPI library */
 // int PAPI_num_cmp_hwctrs(int cidx); /**< return the number of hardware counters for a specified component */
 // int PAPI_num_events(int EventSet); /**< return the number of events in an event set */
-// int PAPI_overflow(int EventSet, int EventCode, int threshold, int flags, PAPI_overflow_handler_t handler); /**< set up an event set to begin registering overflows */
+int PAPI_overflow(int EventSet, int EventCode, int threshold, int flags, PAPI_overflow_handler_t handler); /**< set up an event set to begin registering overflows */
 // void PAPI_perror(char *msg ); /**< Print a PAPI error message */
 // int PAPI_profil(void *buf, unsigned bufsiz, caddr_t offset, unsigned scale, int EventSet, int EventCode, int threshold, int flags); /**< generate PC histogram data where hardware counter overflow occurs */
 // int PAPI_query_event(int EventCode); /**< query if a PAPI event exists */
