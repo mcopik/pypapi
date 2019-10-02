@@ -6,6 +6,7 @@ typedef void (*HighAPICallback)(long long *);
 
 int overflow_buffer_count(void);
 long long * overflow_buffer_access(int cnt);
+int overflow_buffer_size(int cnt);
 
 void overflow_buffer_allocate(int size, int event_count, HighAPICallback callback);
 void overflow_buffer_deallocate(void);

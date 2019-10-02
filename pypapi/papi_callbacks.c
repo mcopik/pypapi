@@ -3,18 +3,16 @@
 
 #include <papi.h>
 
-typedef void (*HighAPICallback)(long long *);
 
 #define BUFFER_SIZE 100
 
 static long long ** buffer = NULL;
 static int buffer_size = BUFFER_SIZE, buffer_counter = 0;
+static int counter = 0, cur_buffer_size = 0, events = 0;
 
-long long * overflow_buffer(int size, int event_count, HighAPICallback callback)
+long long * overflow_buffer(int size, int event_count)
 {
-  static int counter = 0, cur_buffer_size = 0, events = 0;
   static long long * values = NULL;
-  //static HighAPICallback callback_ptr = NULL;
   if(size > 0) {
     buffer = calloc(BUFFER_SIZE, sizeof(long long*));
     buffer_size = BUFFER_SIZE;
@@ -23,17 +21,17 @@ long long * overflow_buffer(int size, int event_count, HighAPICallback callback)
     values = malloc(sizeof(long long) * size * event_count);
     buffer[buffer_counter++] = values;
     events = event_count;
-    counter = 0;
     cur_buffer_size = size;
 
-    //callback_ptr = callback;
     return values;
   } else if(size < 0) {
+    //for(int i = 0; i < buffer_counter; ++i)
+    //free(buffer[i]);
+    values = NULL;
     free(buffer);
-    free(values);
+    buffer = NULL;
     buffer_size = buffer_counter = 0;
     counter = cur_buffer_size = events = 0;
-    //callback_ptr = NULL;
     return NULL;
   } else {
     if(counter == cur_buffer_size) {
@@ -44,9 +42,6 @@ long long * overflow_buffer(int size, int event_count, HighAPICallback callback)
       }
       buffer[buffer_counter++] = values;
       values = calloc(cur_buffer_size * events, sizeof(long long));
-      //printf("%p\n", values);
-      //fflush(stdout);
-      //(*callback_ptr)(values);
       counter = 0;
     }
     return &values[events * counter++];
@@ -58,27 +53,31 @@ int overflow_buffer_count(void)
   return buffer_counter;
 }
 
+int overflow_buffer_size(int cnt)
+{
+  return cnt == (buffer_counter - 1) ? counter * events : cur_buffer_size * events;
+}
+
 long long * overflow_buffer_access(int cnt)
 {
   return buffer[cnt];
 }
 
-void overflow_buffer_allocate(int size, int event_count, HighAPICallback callback)
+void overflow_buffer_allocate(int size, int event_count)
 {
   assert(size > 0);
   assert(event_count > 0);
-  assert(callback);
-  overflow_buffer(size, event_count, callback);
+  overflow_buffer(size, event_count);
 }
 
 void overflow_buffer_deallocate(void)
 {
-  overflow_buffer(-1, 0, NULL);
+  overflow_buffer(-1, 0);
 }
 
 long long * overflow_buffer_get(void)
 {
-  return overflow_buffer(0, 0, NULL);
+  return overflow_buffer(0, 0);
 }
 
 void overflow_C_callback(
