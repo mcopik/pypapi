@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <stdio.h>
 
 #include <papi.h>
 
@@ -14,14 +16,19 @@ long long * overflow_buffer(int size, int event_count)
 {
   static long long * values = NULL;
   if(size > 0) {
-    buffer = calloc(BUFFER_SIZE, sizeof(long long*));
-    buffer_size = BUFFER_SIZE;
-    buffer_counter = 0;
 
-    values = malloc(sizeof(long long) * size * event_count);
-    buffer[buffer_counter++] = values;
-    events = event_count;
-    cur_buffer_size = size;
+    // clean. otherwise continue aggregation
+    if(!buffer) {
+
+      buffer = calloc(BUFFER_SIZE, sizeof(long long*));
+      buffer_size = BUFFER_SIZE;
+      buffer_counter = 0;
+
+      values = malloc(sizeof(long long) * size * (event_count + 1));
+      buffer[buffer_counter++] = values;
+      events = event_count;
+      cur_buffer_size = size;
+    }
 
     return values;
   } else if(size < 0) {
@@ -41,10 +48,10 @@ long long * overflow_buffer(int size, int event_count)
         buffer = realloc(buffer, sizeof(long long*) * buffer_size);
       }
       buffer[buffer_counter++] = values;
-      values = calloc(cur_buffer_size * events, sizeof(long long));
+      values = calloc(cur_buffer_size * (events + 1), sizeof(long long));
       counter = 0;
     }
-    return &values[events * counter++];
+    return &values[(events + 1) * counter++];
   }
 }
 
@@ -55,7 +62,7 @@ int overflow_buffer_count(void)
 
 int overflow_buffer_size(int cnt)
 {
-  return cnt == (buffer_counter - 1) ? counter * events : cur_buffer_size * events;
+  return (cnt == (buffer_counter - 1) ? counter : cur_buffer_size) * (events + 1);
 }
 
 long long * overflow_buffer_access(int cnt)
@@ -84,7 +91,11 @@ void overflow_C_callback(
     int EventSet, void* address,
     long long overflow_vector, void* ctx)
 {
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  long long cur_time = tp.tv_sec * 1000 * 1000 + tp.tv_usec;
   long long * data = overflow_buffer_get();
-  PAPI_read(EventSet, data);
+  data[0] = cur_time;
+  PAPI_read(EventSet, data + 1);
 }
 
