@@ -26,11 +26,12 @@ with_papi = True
 with_overflow = True
 
 times = []
-test_samples = 100
+test_samples = 10
+cur_time = datetime.now().timestamp()
 for i in range(0, test_samples):
     if with_overflow:
         # Low buffer size to test double buffering
-        papi.overflow_sampling(evs, events.PAPI_TOT_INS, 1000000, 100, lambda val: data.append(val))
+        papi.overflow_sampling(evs, events.PAPI_TOT_INS, 1000000, 100)
     if with_papi:
         papi.start(evs)
     start = datetime.now()
@@ -42,6 +43,8 @@ for i in range(0, test_samples):
 print('Min %f Mean %f Std %f' % (np.min(times), np.mean(times), np.std(times)))
 
 data = papi.overflow_sampling_results(evs)
+print('Start time: {}'.format(cur_time))
+print('First data: {}'.format(data[0][0:4]))
 
 papi.cleanup_eventset(evs)
 papi.destroy_eventset(evs)
