@@ -508,10 +508,8 @@ def stop(eventSet):
     return rcode, ffi.unpack(values, eventCount)
 
 @papi_error
-def overflow_sampling(eventSet, event, threshold, buffer_size, callback):
+def overflow_sampling(eventSet, event, threshold, buffer_size):
 
-    global cur_buffer_size
-    cur_buffer_size = buffer_size
     # event count
     eventCount_p = ffi.new("int*", 0)
     rcode = lib.PAPI_list_events(eventSet, ffi.NULL, eventCount_p)
@@ -519,7 +517,7 @@ def overflow_sampling(eventSet, event, threshold, buffer_size, callback):
         return rcode, None
     eventCount = ffi.unpack(eventCount_p, 1)[0]
 
-    lib.overflow_buffer_allocate(cur_buffer_size, eventCount, lib.overflow_callback)
+    lib.overflow_buffer_allocate(buffer_size, eventCount, lib.overflow_callback)
     rcode = lib.PAPI_overflow(eventSet, event, threshold,
             0, ffi.addressof(lib, "overflow_C_callback"))
     return rcode, None
