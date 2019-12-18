@@ -517,7 +517,7 @@ def overflow_sampling(eventSet, event, threshold, buffer_size):
         return rcode, None
     eventCount = ffi.unpack(eventCount_p, 1)[0]
 
-    lib.overflow_buffer_allocate(buffer_size, eventCount, lib.overflow_callback)
+    lib.overflow_buffer_allocate(buffer_size, eventCount)
     rcode = lib.PAPI_overflow(eventSet, event, threshold,
             0, ffi.addressof(lib, "overflow_C_callback"))
     return rcode, None
