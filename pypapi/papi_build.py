@@ -11,7 +11,7 @@ _PAPI_CALLBACKS = os.path.join(_ROOT, "papi_callbacks.h")
 ffibuilder = FFI()
 ffibuilder.set_source(
         "pypapi._papi",
-        '#include "papi.h"',
+        '#include "papi.h"\n#include "papi_callbacks.h"',
         sources=['pypapi/papi_callbacks.c'],
         extra_objects=[os.path.join(_ROOT, "..", "papi", "src", "libpapi.a")],
         include_dirs=[_ROOT],
